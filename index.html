@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Iron absorption tracker</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f5f7fa;--surf:#fff;--ink:#1b2430;--mute:#5d6b7c;--line:#dbe1e8;--steel:#3c5a78;--g:#2e7d5b;--y:#b7791f;--r:#b3263e;--gbg:#d9efe5;--ybg:#f7ebcf;--rbg:#f6dde1}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#141a22;--surf:#1d2530;--ink:#e8edf3;--mute:#9aa8b8;--line:#2e3948;--steel:#7fa3c7;--g:#5cc79a;--y:#e6b450;--r:#f07a8e;--gbg:#1d3a2f;--ybg:#3b3220;--rbg:#3a2229}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:680px;margin:0 auto;padding:18px 16px 48px}
+h1{font-size:25px;margin:0 0 12px;letter-spacing:-.02em}h2{font-size:17px;margin:22px 0 8px}
+.tabs{display:flex;gap:6px;margin-bottom:16px}.tabs button{flex:1}.tabs button[aria-selected=true]{background:var(--steel);color:#fff;border-color:var(--steel)}
+.card,.src{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:end}
+label{display:flex;flex-direction:column;font-size:13px;color:var(--mute);gap:4px;flex:1 1 130px}
+select,input,button{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;min-height:44px}
+.chk{flex-direction:row;align-items:center;color:var(--ink);font-size:15px}.chk input{min-height:0;width:20px;height:20px}
+button.add{background:var(--steel);color:#fff;border:0;font-weight:600;flex:1 1 100%}
+button.x{min-height:32px;padding:2px 10px;background:none;border:0;color:var(--mute)}
+:focus-visible{outline:2px solid var(--steel);outline-offset:2px}
+.light{display:flex;gap:14px;align-items:center}.dot{width:46px;height:46px;border-radius:50%;flex:none}
+.big{font-size:26px;font-weight:700;letter-spacing:-.02em}.mute{color:var(--mute);font-size:14px}
+.bar{height:14px;border-radius:7px;background:var(--rbg);overflow:hidden;margin:10px 0 8px;position:relative}
+.bar i{position:absolute;top:0;bottom:0;background:var(--g)}.bar b{position:absolute;top:0;bottom:0;background:var(--g);opacity:.45}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{font-size:13px;padding:2px 8px;border-radius:99px}
+.chip.n{background:var(--rbg);color:var(--r)}.chip.p{background:var(--gbg);color:var(--g)}
+.log{list-style:none;margin:0;padding:0}.log li{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}.log li:last-child{border:0}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+.ev{font-size:12px;padding:1px 7px;border-radius:99px;white-space:nowrap}.ev.s{background:var(--gbg);color:var(--g)}.ev.m{background:var(--ybg);color:var(--y)}.ev.w{background:var(--rbg);color:var(--r)}
+p,li{max-width:70ch}[hidden]{display:none!important}
+</style></head><body><main>
+<h1>Iron absorption tracker</h1>
+<div class="tabs" role="tablist"><button role="tab" data-t="today" aria-selected="true">Today</button><button role="tab" data-t="profile" aria-selected="false">Profile</button><button role="tab" data-t="help" aria-selected="false">How it works</button></div>
+
+<section id="today">
+ <label class="chk card" id="dayP" hidden><input type="checkbox" id="pDay">I have my period today</label>
+ <div class="card" id="result"></div>
+ <h2>Add to your log</h2>
+ <div class="card"><div class="row">
+  <label>Meal<select id="meal"><option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snack">Snack</option></select></label>
+  <label>Item<select id="item"></select></label>
+  <label><span id="amtL">Amount (g)</span><input id="amt" type="number" min="0" step="1" inputmode="decimal"></label>
+  <label id="perW">Iron per 100 g (see the label)<input id="per" type="number" min="0" step="0.1" value="15" inputmode="decimal"></label>
+  <label>Exact time (optional)<input id="time" type="time"></label>
+  <p class="mute" id="hint" style="flex:1 1 100%;margin:0"></p>
+  <button class="add" id="addBtn">Add to log</button></div></div>
+ <h2>Add a workout</h2>
+ <div class="card"><div class="row">
+  <label>Type<select id="wType"><option value="endurance">Endurance (run, cycle, swim)</option><option value="hiit">High intensity intervals</option><option value="strength">Strength training</option></select></label>
+  <label>Start time<input id="wStart" type="time" value="07:00"></label>
+  <label>Minutes<input id="wMin" type="number" min="1" step="5" value="60" inputmode="numeric"></label>
+  <button class="add" id="addW">Add workout</button></div></div>
+ <h2>Your log</h2><div class="card"><ul class="log" id="log"></ul></div>
+ <button id="clear">Clear log</button>
+</section>
+
+<section id="profile" hidden>
+ <div class="card"><div class="row">
+  <label>Sex<select id="pSex"><option value="F">Female</option><option value="M">Male</option></select></label>
+  <label>Age<input id="pAge" type="number" min="14" max="100" inputmode="numeric"></label>
+  <label>Height (cm)<input id="pH" type="number" inputmode="numeric"></label>
+  <label>Weight (kg)<input id="pW" type="number" inputmode="decimal"></label>
+  <label>Diet<select id="pDiet"><option value="omni">Eats meat or fish</option><option value="veg">Vegetarian or vegan</option></select></label>
+  <label>Ferritin (µg/L), optional<input id="pFer" type="number" min="1" step="1" inputmode="decimal" placeholder="from a blood test"></label>
+  <label class="chk"><input type="checkbox" id="pPPI">I take an acid reducer (PPI or antacid)</label></div>
+  <h2 style="margin-top:16px">Your usual meal times</h2>
+  <div class="row"><label>Breakfast<input type="time" id="mt_breakfast"></label><label>Lunch<input type="time" id="mt_lunch"></label><label>Dinner<input type="time" id="mt_dinner"></label><label>Snack<input type="time" id="mt_snack"></label></div>
+  <p class="mute">Used to compare meals with your workouts and with each other.</p>
+  <p class="mute">Saved only in this browser. Height and weight are kept for your reference: no good evidence links them to absorption, so they don’t change the numbers. Ferritin is the most useful thing you can add.</p></div>
+</section>
+
+<section id="help" hidden>
+ <div class="card">
+  <p><b>The short version.</b> For each iron source, the app starts from a base absorption rate, then multiplies it by the blockers and boosters in the same meal or close in time. Each factor has a low and a high value, because studies disagree and single-meal effects are bigger than real-life ones. That gives you a range.</p>
+  <p><b>Iron in your food.</b> Iron per 100 g comes from USDA FoodData Central values, rounded (lentils 3.3 mg, chickpeas 2.9, cooked spinach 3.6, cooked ground beef 2.5, beef liver 4.9). Real foods vary by brand, cut and cooking. Tofu (2.7) is my approximation, and fortified cereal varies hugely, so you enter the iron per 100 g from its label. Beef is treated as all heme iron, which is a simplification.</p>
+  <p><b>Amounts matter.</b> Blockers and boosters are dose dependent: more tea, calcium, phytate or vitamin C changes the result more. Each factor has a reference amount (one cup of coffee, 500 mg of calcium, and so on). At the reference amount you get the full effect in the table below; half the amount gives about half the effect; a much bigger amount adds a little more, up to a limit. Meat boosts plant iron in proportion to the heme iron logged (about 2 mg counts as a standard portion).</p>
+  <p><b>Base rates.</b> Heme iron: 25%. Non-heme iron: depends on ferritin, using a pooled analysis of absorption studies: absorption % = 10<sup>(1.82 − 0.73 × log10 ferritin)</sup>. Ferritin 30 gives about 5.5%, ferritin 15 about 9%, ferritin 50 about 4%. With no ferritin entered the app assumes 30 µg/L, the value European (EFSA) iron recommendations use as their reference.</p>
+  <p><b>Timing.</b> Items in the same meal count fully. With exact times: within 15 minutes counts fully; a blocker after the iron within 90 minutes counts half (one trial found tea 1 hour after a meal blocked about half as much); one before the iron within 60 minutes counts half (weaker evidence). Beyond that, nothing. Meal times come from your Profile.</p>
+  <p><b>Workouts.</b> Hepcidin, the hormone that shuts absorption down, rises for hours after prolonged exercise. Iron eaten 1 to 6 hours after a workout (40+ minutes, or 20+ for intense intervals) is reduced. Evidence is best for endurance running; for strength training it’s weaker, so the reduction is smaller.</p>
+  <p><b>Traffic light and periods.</b> Absorbed iron (middle of the range) is compared with what you lose each day. Everyone loses about 0.8-1 mg a day through skin, gut and urine. Across a whole cycle, periods add on average about 0.56 mg a day (about 15 mg per cycle, very skewed between women; FAO/WHO). Spread over a ~5 day period, that is roughly 3 mg a day, so a period day needs about 4 mg absorbed and every other day about 1 mg. If you choose female in your Profile, a box appears on the Today tab to mark a period day; it isn’t shown for men. Green: at or above the need. Yellow: 60-100%, and on period days anything below the need, because stores cover short gaps and you rebuild over the following days. Red: under 60% on other days. If your ferritin is 50 or higher the light stays neutral. Heavy periods and pregnancy are not modelled: ask a doctor if you think you lose a lot of blood.</p>
+ </div>
+ <h2>All factors</h2><div class="card tw"><table id="tbl"></table></div>
+ <h2>Not applied, on purpose</h2>
+ <div class="card"><ul>
+  <li>Oxalate (spinach) and turmeric: reviews found no effect on absorption.</li>
+  <li>Extra needs from sweat, heavy periods, pregnancy or breastfeeding: no reliable number, so ask a doctor.</li>
+  <li>Long-term adaptation to high-phytate diets: real, but too individual to model.</li>
+  <li>Height and weight: no good evidence for absorption.</li></ul></div>
+ <h2>Main sources</h2>
+ <div class="card mute">Hurrell &amp; Egli, “Iron bioavailability and dietary reference values”, AJCN. Collings et al., “The absorption of iron from whole diets: a systematic review”, AJCN. Ahmad Fuzi et al. 2017, “A 1-h time interval between a meal containing iron and consumption of tea…”, AJCN. Hurrell, Reddy &amp; Cook 1999, “Inhibition of non-haem iron absorption in man by polyphenolic-containing beverages”, Br J Nutr. Milman 2020, “Nutrients and compounds which promote or inhibit intestinal iron absorption”, J Nutr Metab. Barney et al., “Hepcidin increases and iron absorption decreases after prolonged running”. Institute of Medicine, DRI for iron. USDA FoodData Central (food iron values). EFSA 2015 and Australian NHMRC iron requirements. NIH-ODS and Oregon State LPI iron fact sheets.</div>
+</section>
+<p class="mute" style="margin-top:20px">Estimates only, not medical advice. Too much iron is harmful: don’t start supplements without a blood test, and see a doctor if you suspect anemia.</p>
+</main>
+<script>
+var IRON=[
+{k:'lentils',n:'Lentils, cooked',per:3.3,t:'non',def:150},{k:'chick',n:'Chickpeas, cooked',per:2.9,t:'non',def:150},
+{k:'spinach',n:'Spinach, cooked',per:3.6,t:'non',def:100},{k:'tofu',n:'Tofu, firm (approx.)',per:2.7,t:'non',def:100},
+{k:'pumpkin',n:'Pumpkin seeds',per:8.8,t:'non',def:30},{k:'cereal',n:'Fortified cereal (use label)',per:15,t:'non',def:40,label:1},
+{k:'beef',n:'Beef, cooked',per:2.5,t:'heme',def:100},{k:'liver',n:'Beef liver, cooked',per:4.9,t:'heme',def:80},
+{k:'supp',n:'Iron supplement (mg of iron)',t:'non',u:'mg',def:18,supp:1},
+{k:'cn',n:'Other plant iron (mg of iron)',t:'non',u:'mg',def:3},{k:'ch',n:'Other meat or fish iron (mg of iron)',t:'heme',u:'mg',def:3}];
+var MODS=[
+{k:'coffee',n:'Coffee',ic:'☕',lo:.3,hi:.6,u:'ml',ref:200,ev:'s',d:'About 60% less in one review; stronger when strong.'},
+{k:'tea',n:'Black or green tea',ic:'🍵',lo:.15,hi:.45,u:'ml',ref:200,ev:'s',d:'56-72% less in one trial, up to 79-94% with a meal in another.'},
+{k:'pep',n:'Peppermint tea',ic:'🍵',lo:.15,hi:.45,u:'ml',ref:200,ev:'m',d:'Close to black tea in a 1999 study.'},
+{k:'herb',n:'Other herbal tea (chamomile)',ic:'🌿',lo:.5,hi:.85,u:'ml',ref:200,ev:'w',d:'Weaker than black tea; exact size uncertain.'},
+{k:'cocoa',n:'Dark chocolate or cocoa',ic:'🍫',lo:.2,hi:.5,u:'g',ref:30,ev:'m',d:'About 71% less in a beverage study.'},
+{k:'wine',n:'Red wine',ic:'🍷',lo:.6,hi:.9,u:'ml',ref:150,ev:'w',d:'Less inhibitory than tea or coffee.'},
+{k:'milk',n:'Milk or yogurt',group:'dairy',ic:'🥛',lo:.55,hi:.9,u:'g',ref:200,ev:'m',d:'Dose dependent; large in one meal, small across a whole diet.'},
+{k:'cheese',n:'Cheese',group:'dairy',ic:'🧀',lo:.55,hi:.9,u:'g',ref:40,ev:'m',d:'Same calcium effect, in a smaller portion.'},
+{k:'calc',n:'Calcium supplement (mg of calcium)',ic:'💊',lo:.45,hi:.75,u:'mg',ref:500,ev:'s',d:'500 mg halved absorption in one meal study.'},
+{k:'phy',n:'Whole grains, nuts or beans (cooked or dry)',ic:'🌾',lo:.4,hi:.8,u:'g',ref:100,ev:'s',d:'Main plant blocker, from tiny doses. Plant iron sources already carry some of this in their base rate.'},
+{k:'egg',n:'Egg',ic:'🥚',lo:.7,hi:1,u:'g',ref:50,ev:'w',d:'Up to 28% less per egg in some studies; another review found none.'},
+{k:'soy',n:'Soy foods (tofu, soy milk)',ic:'🫘',lo:.3,hi:.8,u:'g',ref:100,ev:'m',d:'Blocks beyond its phytate; isolated soy protein is strongest.'},
+{k:'oj',n:'Orange juice or citrus fruit',group:'vitc',ic:'🍊',lo:1.5,hi:3.5,u:'g',ref:200,ev:'s',d:'2-4 times more in single meals; less across a whole diet. About 100 mg vitamin C per 200 g.'},
+{k:'pepper',n:'Raw bell pepper',group:'vitc',ic:'🫑',lo:1.5,hi:3.5,u:'g',ref:75,ev:'s',d:'About 95 mg vitamin C per 75 g.'},
+{k:'berry',n:'Strawberries or kiwi',group:'vitc',ic:'🍓',lo:1.5,hi:3.5,u:'g',ref:150,ev:'s',d:'About 90 mg vitamin C per 150 g.'}];
+var MEAT={n:'meat factor',ic:'🥩',lo:1.3,hi:2.5,ev:'s',d:'2-3 times more non-heme iron in single-meal studies. Automatic: logging heme iron counts.',ref:'~2 mg heme iron'};
+var OTHER=[{n:'Acid reducer (profile)',lo:.5,hi:.9,ev:'w',d:'Non-heme iron needs stomach acid. About 50% less in one small study of people with hemochromatosis; unclear in others.'},
+{n:'Second supplement within the same day',lo:.5,hi:.8,ev:'w',d:'Hepcidin stays high about a day after a dose, so more pills may not add much.'},
+{n:'1-6 hours after endurance or intense workout',lo:.6,hi:.85,ev:'m',d:'Absorption fell 36% two hours after a prolonged run.'},
+{n:'1-6 hours after strength training',lo:.8,hi:.95,ev:'w',d:'Less studied; smaller reduction assumed.'},
+{n:'Heme iron base rate',lo:.25,hi:.25,ev:'s',d:'About 25%, much less affected by other foods.'}];
+var EVN={s:'strong',m:'moderate',w:'weak or disputed'};
+var KEY='iron-v3',S={p:{sex:'F',age:30,diet:'omni'},mt:{breakfast:'08:00',lunch:'13:00',dinner:'19:00',snack:'16:00'},log:[],work:[]};
+function $(i){return document.getElementById(i)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s){S=s;S.work=S.work||[];S.log=S.log||[];S.mt=S.mt||{breakfast:'08:00',lunch:'13:00',dinner:'19:00',snack:'16:00'}}}catch(e){}}
+function T(s){var p=s.split(':');return +p[0]*60+ +p[1]}
+function find(k){return IRON.filter(function(x){return x.k===k})[0]||MODS.filter(function(x){return x.k===k})[0]}
+function isI(k){return IRON.some(function(x){return x.k===k})}
+function tm(e){return e.time?T(e.time):T(S.mt[e.meal])}
+function wt(e,o){if(e.meal===o.meal&&!e.time&&!o.time)return 1;var g=tm(o)-tm(e);if(Math.abs(g)<=15)return 1;return((g>0&&g<=90)||(g<0&&g>=-60))?.5:0}
+function f2(n){return(Math.round(n*100)/100).toString()}
+function dose(x){x=Math.min(3,x);return(1-Math.exp(-1.5*x))/(1-Math.exp(-1.5))}
+function sc(m,d){return Math.max(.05,1+(m-1)*d)}
+function fer(){var f=parseFloat(S.p.fer);return f>0?f:30}
+function nonBase(){return Math.min(.4,Math.max(.02,Math.pow(10,1.82-.73*Math.log10(fer()))/100))}
+function mens(){return S.p.sex==='F'}
+function today(){return new Date().toLocaleDateString('en-CA')}
+function onP(){return mens()&&S.pd===today()}
+function tgt(){return onP()?4:1}
+function rda(){var a=+S.p.age||30,f=S.p.sex==='F';return a<19?(f?15:11):a<=50?(f?18:8):8}
+function qual(w){return w.type==='hiit'?+w.min>=20:+w.min>=40}
+function compute(){
+ var out=[],nth=0;
+ S.log.slice().sort(function(a,b){return tm(a)-tm(b)}).forEach(function(e){
+  if(!isI(e.k))return;var d=find(e.k),lo=1,hi=1,eff=[],t=tm(e);
+  if(d.t==='non'){
+   var G={},R={};
+   S.log.forEach(function(o){if(o===e)return;var w=wt(e,o);if(!w)return;var g,x,m;
+    if(isI(o.k)){if(find(o.k).t!=='heme')return;g='meat';x=w*o.mg/2;m=MEAT}else{m=find(o.k);g=m.group||m.k;x=w*o.amt/m.ref}
+    G[g]=(G[g]||0)+x;R[g]=R[g]||m});
+   Object.keys(G).forEach(function(g){var m=R[g],dd=dose(G[g]),a=sc(m.lo,dd),b=sc(m.hi,dd);lo*=a;hi*=b;
+    var nm=g==='vitc'?'vitamin C':g==='dairy'?'dairy':g==='meat'?'meat factor':m.n.split(' (')[0].toLowerCase();
+    eff.push({ic:m.ic,t:nm,p:Math.round(((a+b)/2-1)*100)})});
+   if(S.p.ppi){lo*=.5;hi*=.9;eff.push({ic:'💊',t:'acid reducer',p:-30})}
+  }
+  if(d.supp){if(nth>0){lo*=Math.pow(.5,nth);hi*=Math.pow(.8,nth);eff.push({ic:'💊',t:'earlier supplement today',p:-35})}nth++}
+  var wl=1,wh=1,hit=0;S.work.forEach(function(q){if(!qual(q))return;var end=T(q.start)+ +q.min;if(t>=end+60&&t<=end+360){var l=q.type==='strength'?.8:.6,h=q.type==='strength'?.95:.85;if(l<wl){wl=l;wh=h;hit=1}}});
+  if(hit){lo*=wl;hi*=wh;eff.push({ic:'🏃',t:'after workout',p:Math.round(((wl+wh)/2-1)*100)})}
+  var b=d.t==='heme'?.25:nonBase(),cap=d.t==='heme'?.35:.5,a=Math.min(lo,hi),z=Math.max(lo,hi);
+  out.push({e:e,d:d,lo:e.mg*Math.min(cap,b*a),hi:e.mg*Math.min(cap,b*z),eff:eff});
+ });return out}
+function nm(e){var d=find(e.k);return d.n.split(' (')[0]}
+function render(){
+ S.log.sort(function(a,b){return tm(a)-tm(b)});
+ $('dayP').hidden=!mens();$('pDay').checked=onP();
+ var R=compute(),tot=0,lo=0,hi=0;R.forEach(function(r){tot+=r.e.mg;lo+=r.lo;hi+=r.hi});
+ var mid=(lo+hi)/2,tg=tgt(),fv=parseFloat(S.p.fer),cl,msg;
+ if(fv>=50){cl='g';msg='Your ferritin is '+fv+'. Your stores look fine, and your body absorbs less on purpose. Higher is not better. '+(fv>200?'A very high ferritin should be checked by a doctor.':'')}
+ else if(!R.length){cl='y';msg='Add an iron source to see your estimate.'}
+ else{var q=mid/tg;cl=q>=1?'g':q>=.6?'y':'r';var pd=onP();if(pd&&cl==='r')cl='y';msg=pd?((q>=1?'You’re matching today’s estimated loss.':'Below today’s estimated loss, which is normal on a period day: your stores cover the gap and you rebuild over the next days.')+' Estimated need today: about '+f2(tg)+' mg absorbed, from roughly 1 mg of daily loss plus about 3 mg lost with your period. This is rough, and it varies a lot between women.'):(({g:'On track for today.',y:'A bit below what you typically need.',r:'Well below what you typically need.'})[cl]+' You typically need to absorb about '+f2(tg)+' mg on a day without a period (RDA '+rda()*(S.p.diet==='veg'?1.8:1)+' mg eaten'+(S.p.diet==='veg'?', with the vegetarian ×1.8':'')+').')}
+ var col={g:'var(--g)',y:'var(--y)',r:'var(--r)'}[cl];
+ $('result').innerHTML='<div class="light"><div class="dot" style="background:'+col+'"></div><div><div class="big">'+(R.length?f2(lo)+' to '+f2(hi)+' mg':'–')+'</div><div class="mute">absorbed of '+f2(tot)+' mg eaten</div></div></div><p style="margin:10px 0 0">'+msg+'</p>'+(S.p.fer?'':'<p class="mute" style="margin:6px 0 0">Assuming ferritin 30 µg/L, a typical middle value. Add yours in Profile for a better estimate.</p>');
+ var h='';R.forEach(function(r){var ch=r.eff.length?r.eff.map(function(x){return'<span class="chip '+(x.p<0?'n':'p')+'">'+x.ic+' '+x.t+' '+(x.p>0?'+':'')+x.p+'%</span>'}).join(''):'<span class="mute">'+(r.d.t==='heme'?'Heme iron is barely affected by other foods.':'Nothing relevant nearby.')+'</span>';
+  h+='<div class="src"><div class="row" style="justify-content:space-between"><b>'+nm(r.e)+(r.e.u==='mg'?'':' '+f2(r.e.amt)+' g')+' · '+r.e.meal+(r.e.time?' '+r.e.time:'')+'</b><span>'+f2(r.lo)+' to '+f2(r.hi)+' of '+f2(r.e.mg)+' mg</span></div><div class="bar"><b style="left:0;width:'+Math.round(r.hi/r.e.mg*100)+'%"></b><i style="left:0;width:'+Math.round(r.lo/r.e.mg*100)+'%"></i></div><div class="chips">'+ch+'</div></div>'});
+ var el=document.createElement('div');el.innerHTML=h;var old=$('srcs');if(old)old.remove();el.id='srcs';$('result').after(el);
+ var li=S.log.map(function(e){var d=find(e.k),u=isI(e.k)?(d.u||'g'):d.u;return{t:tm(e),h:'<li><span>'+e.meal+(e.time?' '+e.time:'')+': '+(d.ic||'')+' '+nm(e)+' · '+f2(e.amt)+' '+u+(isI(e.k)&&!d.u?' ('+f2(e.mg)+' mg iron)':'')+'</span><button class="x" data-i="'+e.id+'" aria-label="Remove">✕</button></li>'}});
+ S.work.forEach(function(w){li.push({t:T(w.start),h:'<li><span>'+w.start+': 🏃 '+({endurance:'Endurance',hiit:'Intervals',strength:'Strength'})[w.type]+' · '+w.min+' min</span><button class="x" data-i="'+w.id+'" aria-label="Remove">✕</button></li>'})});
+ li.sort(function(a,b){return a.t-b.t});
+ $('log').innerHTML=li.length?li.map(function(x){return x.h}).join(''):'<li class="mute">Nothing logged yet.</li>'}
+function syncItem(){var k=$('item').value,d=find(k),u=d.u||(isI(k)?'g':'g');$('amtL').textContent='Amount ('+u+')';$('amt').value=d.def||d.ref;
+ $('perW').style.display=d.label?'flex':'none';if(d.label)$('per').value=d.per;hint()}
+function hint(){var k=$('item').value,d=find(k);if(!isI(k)){$('hint').textContent='';return}var a=parseFloat($('amt').value)||0,per=d.label?(parseFloat($('per').value)||0):d.per,mg=d.u==='mg'?a:a*per/100;$('hint').textContent='≈ '+f2(mg)+' mg of iron'+(d.u==='mg'?'':' at '+per+' mg per 100 g')}
+function tbl(){var r='<tr><th>Factor</th><th>Effect at reference amount</th><th>Evidence</th><th>Notes</th></tr>';
+ MODS.concat([MEAT],OTHER).forEach(function(m){var eff=m.lo===m.hi?'about '+Math.round(m.lo*100)+'% of intake':(m.lo>=1?'+':'')+Math.round((m.lo-1)*100)+'% to '+(m.hi>=1?'+':'')+Math.round((m.hi-1)*100)+'%';r+='<tr><td>'+(m.ic||'')+' '+(m.n||'')+(m.ref?'<br><span class="mute">per '+m.ref+(m.u?' '+m.u:'')+'</span>':'')+'</td><td>'+eff+'</td><td><span class="ev '+m.ev+'">'+EVN[m.ev]+'</span></td><td>'+m.d+'</td></tr>'});$('tbl').innerHTML=r}
+function bindP(){[['pSex','sex'],['pAge','age'],['pH','h'],['pW','w'],['pDiet','diet'],['pFer','fer']].forEach(function(p){var el=$(p[0]);el.value=S.p[p[1]]==null?'':S.p[p[1]];el.addEventListener('change',function(){S.p[p[1]]=el.value;save();render()})});
+ [['pPPI','ppi'],].forEach(function(p){var el=$(p[0]);el.checked=!!S.p[p[1]];el.addEventListener('change',function(){S.p[p[1]]=el.checked;save();render()})});
+ ['breakfast','lunch','dinner','snack'].forEach(function(m){var el=$('mt_'+m);el.value=S.mt[m];el.addEventListener('change',function(){if(el.value){S.mt[m]=el.value;save();render()}})})}
+(function(){load();
+ $('item').innerHTML='<optgroup label="Iron sources">'+IRON.map(function(x){return'<option value="'+x.k+'">'+x.n+'</option>'}).join('')+'</optgroup><optgroup label="Blockers and boosters">'+MODS.map(function(x){return'<option value="'+x.k+'">'+x.n+'</option>'}).join('')+'</optgroup>';
+ syncItem();bindP();tbl();render();
+ $('item').addEventListener('change',syncItem);$('amt').addEventListener('input',hint);$('per').addEventListener('input',hint);
+ $('addBtn').addEventListener('click',function(){var k=$('item').value,d=find(k),a=parseFloat($('amt').value);if(!(a>0))return;
+  var e={id:Date.now()+Math.random(),k:k,meal:$('meal').value,amt:a};if($('time').value)e.time=$('time').value;
+  if(isI(k)){var per=d.label?parseFloat($('per').value):d.per;if(d.u==='mg')e.mg=a;else{if(!(per>0))return;e.mg=a*per/100}if(d.u)e.u=d.u}
+  S.log.push(e);save();render()});
+ $('pDay').addEventListener('change',function(){S.pd=$('pDay').checked?today():null;save();render()});
+ $('addW').addEventListener('click',function(){var s=$('wStart').value,m=parseFloat($('wMin').value);if(!s||!(m>0))return;S.work.push({id:Date.now()+Math.random(),type:$('wType').value,start:s,min:m});save();render()});
+ $('log').addEventListener('click',function(ev){var id=ev.target.getAttribute('data-i');if(!id)return;S.log=S.log.filter(function(e){return String(e.id)!==id});S.work=S.work.filter(function(e){return String(e.id)!==id});save();render()});
+ $('clear').addEventListener('click',function(){S.log=[];S.work=[];save();render()});
+ document.querySelectorAll('.tabs button').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tabs button').forEach(function(x){x.setAttribute('aria-selected',x===b)});['today','profile','help'].forEach(function(t){$(t).hidden=t!==b.dataset.t})})});
+})();
+</script></body></html>
